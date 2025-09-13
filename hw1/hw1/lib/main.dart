@@ -14,29 +14,56 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: appTitle,
       home: Scaffold(
-        appBar: AppBar(title: const Text(appTitle)),
+        // appBar: AppBar(title: const Text(appTitle)),
         body: Center(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            // mainAxisSize: MainAxisSize.min,
             children: const [
               ImageSection(
     image: 'images/lake.jpg',
   ),
               TitleSection(
-                name: 'Oeschinen Lake Campground',
-                location: 'Kandersteg, Switzerland',
+                name: '천주현',
+                location: '22000747',
               ),
+              Divider(height: 1.0,color: Colors.black,),
               ButtonSection(),
-              TextSection(
-    description:
-        'Lake Oeschinen lies at the foot of the Blüemlisalp in the '
-        'Bernese Alps. Situated 1,578 meters above sea level, it '
-        'is one of the larger Alpine Lakes. A gondola ride from '
-        'Kandersteg, followed by a half-hour walk through pastures '
-        'and pine forest, leads you to the lake, which warms to 20 '
-        'degrees Celsius in the summer. Activities enjoyed here '
-        'include rowing, and riding the summer toboggan run.',
-  ),
+              Divider(height: 1.0,color: Colors.black,),
+              Row(
+  crossAxisAlignment: CrossAxisAlignment.start, 
+  children: [
+    SizedBox(width: 24,),
+     Padding(
+      padding: EdgeInsets.only(left: 16.0, top: 12.0),
+      child: Icon(Icons.message, size: 40),
+    ),
+    Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, 
+        children: [
+          TextSection(
+            description: 'Recent Message',
+            padding:  EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0), 
+            style:  TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          TextSection(
+            description: 'Long time no see!',
+            padding:  EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),  
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    ),
+  ],
+),
+             
             ],
           ),
         ),
@@ -76,7 +103,6 @@ class TitleSection extends StatelessWidget {
           ),
           /*3*/
           const FavoriteWidget(),
-          const Text('41'),
         ],
       ),
     );
@@ -86,17 +112,18 @@ class TitleSection extends StatelessWidget {
 class ButtonSection extends StatelessWidget {
   const ButtonSection({super.key});
 
-  @override
+   @override
   Widget build(BuildContext context) {
-    final Color color = Theme.of(context).primaryColor;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ButtonWithText(color: color, icon: Icons.call, label: 'CALL'),
-          ButtonWithText(color: color, icon: Icons.near_me, label: 'ROUTE'),
-          ButtonWithText(color: color, icon: Icons.share, label: 'SHARE'),
+        children: const [
+          ButtonWithText(color: Colors.black, icon: Icons.call, label: 'CALL'),
+          ButtonWithText(color: Colors.black, icon: Icons.message, label: 'MESSAGE'),
+          ButtonWithText(color: Colors.black, icon: Icons.email, label: 'EMAIL'),
+          ButtonWithText(color: Colors.black, icon: Icons.share, label: 'SHARE'),
+          ButtonWithText(color: Colors.black, icon: Icons.description, label: 'ETC'),
         ],
       ),
     );

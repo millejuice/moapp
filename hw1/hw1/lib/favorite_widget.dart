@@ -23,11 +23,11 @@ class _FavoriteWidgetState extends State<FavoriteWidget> {
             icon: (_isFavorited
                 ? const Icon(Icons.star)
                 : const Icon(Icons.star_border)),
-            color: Colors.red[500],
+            color: Colors.yellow,
             onPressed: _toggleFavorite,
           ),
         ),
-        SizedBox(width: 18, child: SizedBox(child: Text('$_favoriteCount'))),
+        SizedBox(width: 24 , child: SizedBox(child: Text('$_favoriteCount'))),
       ],
     );
   }
