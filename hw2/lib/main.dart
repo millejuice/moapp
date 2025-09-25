@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = FavoritesPage();
         break;
       default:
-        throw UnimplementedError('no widget for $selectedIndex');
+        page = ProfilePage();
     }
 
     // The container for the current page, with its background color
@@ -112,6 +112,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       BottomNavigationBarItem(
                         icon: Icon(Icons.favorite_border),
                         label: 'Favorites',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.person_outline),
+                        label: 'Profile',
                       ),
                     ],
                     currentIndex: selectedIndex,
@@ -158,6 +162,41 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+class ClipRRectApp extends StatelessWidget {
+  const ClipRRectApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: const ClipRRectExample(),
+      ),
+    );
+  }
+}
+
+class ClipRRectExample extends StatelessWidget {
+  const ClipRRectExample({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(40.0),
+      constraints: const BoxConstraints.expand(),
+      // Add a FittedBox to make ClipRRect sized accordingly to the image it contains
+      child: FittedBox(
+        child: Column(
+          children: [
+            ClipRRect(borderRadius: BorderRadius.circular(50.0), child: Image.network('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQM_cQN7iGs8l1vtD-jrrZGZOQVRqIcslbO4K4eIV_v5fWnItRca8bqZiw&s')),
+            Text('22000747\nCheon Juhyun',style: TextStyle(fontSize: 15),)
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -188,6 +227,14 @@ class GeneratorPage extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   appState.toggleFavorite();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(appState.favorites.contains(pair)
+                          ? 'Saved'
+                          : 'Unsaved'),
+                      duration: Duration(milliseconds: 800),
+                    ),
+                  );
                 },
                 icon: Icon(icon),
                 label: Text('Like'),
@@ -236,11 +283,11 @@ class BigCard extends StatelessWidget {
               children: [
                 Text(
                   pair.first,
-                  style: style.copyWith(fontWeight: FontWeight.w200),
+                  style: style.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   pair.second,
-                  style: style.copyWith(fontWeight: FontWeight.bold),
+                  style: style.copyWith(fontWeight: FontWeight.w100),
                 )
               ],
             ),
@@ -272,25 +319,43 @@ class FavoritesPage extends StatelessWidget {
               '${appState.favorites.length} favorites:'),
         ),
         Expanded(
-          // Make better use of wide windows with a grid.
-          child: GridView(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 400,
-              childAspectRatio: 400 / 80,
-            ),
+          child: ListView(
             children: [
               for (var pair in appState.favorites)
                 ListTile(
-                  leading: IconButton(
-                    icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
-                    color: theme.colorScheme.primary,
-                    onPressed: () {
-                      appState.removeFavorite(pair);
-                    },
-                  ),
                   title: Text(
                     pair.asLowerCase,
                     semanticsLabel: pair.asPascalCase,
+                  ),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
+                    color: theme.colorScheme.primary,
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Delete'),
+                            content: Text('Are you sure you want to delete it?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  appState.removeFavorite(pair);
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
             ],
@@ -306,6 +371,15 @@ class HistoryListView extends StatefulWidget {
 
   @override
   State<HistoryListView> createState() => _HistoryListViewState();
+}
+
+class ProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var pair = appState.current;
+    return const ClipRRectApp();
+    }
 }
 
 class _HistoryListViewState extends State<HistoryListView> {
@@ -362,3 +436,4 @@ class _HistoryListViewState extends State<HistoryListView> {
     );
   }
 }
+
