@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'detail.dart';
 import 'model/product.dart';
 import 'model/products_repository.dart';
+import 'model/favorites_manager.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -14,6 +16,44 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<bool> _isSelected = [false, true]; // [ListView, GridView] - GridView selected by default
+  final FavoritesManager _favoritesManager = FavoritesManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _favoritesManager.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _favoritesManager.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    setState(() {});
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback: try with different mode
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not launch URL: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
 
 // TODO: Make a collection of cards (102)
 
@@ -335,13 +375,51 @@ class _HomePageState extends State<HomePage> {
               Navigator.pushNamed(context, '/search');
             },
           ),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.favorite,
+                  semanticLabel: 'favorites',
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/favorite-hotels');
+                },
+              ),
+              if (_favoritesManager.favoriteCount > 0)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '${_favoritesManager.favoriteCount}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(
               Icons.language,
               semanticLabel: 'language',
             ),
             onPressed: () {
-              print('Language button');
+              _launchURL('https://www.handong.edu/');
             },
           ),
         ],

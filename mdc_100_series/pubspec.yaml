@@ -10,9 +10,11 @@ dependencies:
     sdk: flutter
   intl: ^0.17.0
   animated_text_kit: ^4.2.2
+  flutter_slidable: ^3.0.0
 
   cupertino_icons: ^1.0.5
   shrine_images: ^2.0.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'model/product.dart';
+import 'model/favorites_manager.dart';
 
 class DetailPage extends StatefulWidget {
   final Product product;
@@ -26,7 +27,23 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  bool isFavorite = false;
+  final FavoritesManager _favoritesManager = FavoritesManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _favoritesManager.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _favoritesManager.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,14 +70,15 @@ class _DetailPageState extends State<DetailPage> {
                   child: InkWell(
                     onDoubleTap: () {
                       setState(() {
-                        isFavorite = !isFavorite;
+                        _favoritesManager.toggleFavorite(widget.product);
                       });
+                      final bool isFavorite = _favoritesManager.isFavorite(widget.product);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             isFavorite 
-                              ? 'Added \${widget.product.name} to favorites!' 
-                              : 'Removed \${widget.product.name} from favorites!'
+                              ? 'Added ${widget.product.name} to favorites!' 
+                              : 'Removed ${widget.product.name} from favorites!'
                           ),
                           duration: const Duration(seconds: 2),
                         ),
@@ -84,21 +102,22 @@ class _DetailPageState extends State<DetailPage> {
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
-                        isFavorite = !isFavorite;
+                        _favoritesManager.toggleFavorite(widget.product);
                       });
+                      final bool isFavorite = _favoritesManager.isFavorite(widget.product);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             isFavorite 
-                              ? 'Added \${widget.product.name} to favorites!' 
-                              : 'Removed \${widget.product.name} from favorites!'
+                              ? 'Added ${widget.product.name} to favorites!' 
+                              : 'Removed ${widget.product.name} from favorites!'
                           ),
                           duration: const Duration(seconds: 2),
                         ),
                       );
                     },
                     child: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      _favoritesManager.isFavorite(widget.product) ? Icons.favorite : Icons.favorite_border,
                       color: Colors.red,
                       size: 32,
                     ),

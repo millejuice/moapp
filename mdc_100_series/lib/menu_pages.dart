@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'model/product.dart';
+import 'model/favorites_manager.dart';
+import 'detail.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -503,24 +506,149 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
-class FavoriteHotelsPage extends StatelessWidget {
+class FavoriteHotelsPage extends StatefulWidget {
   const FavoriteHotelsPage({Key? key}) : super(key: key);
 
   @override
+  State<FavoriteHotelsPage> createState() => _FavoriteHotelsPageState();
+}
+
+class _FavoriteHotelsPageState extends State<FavoriteHotelsPage> {
+  final FavoritesManager _favoritesManager = FavoritesManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _favoritesManager.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _favoritesManager.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    setState(() {});
+  }
+
+  void _removeFavorite(Product product) {
+    setState(() {
+      _favoritesManager.removeFromFavorites(product);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Removed ${product.name} from favorites'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _favoritesManager.addToFavorites(product);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final favoriteHotels = _favoritesManager.favoriteHotels;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Favorite Hotels'),
+        title: Text('Favorite Hotels (${favoriteHotels.length})'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       drawer: _buildDrawer(context),
-      body: const Center(
-        child: Text(
-          'Favorite Hotels Page',
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
+      body: favoriteHotels.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.favorite_border,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No favorite hotels yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Double tap on hotel images to add them to favorites!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              itemCount: favoriteHotels.length,
+              itemBuilder: (context, index) {
+                final hotel = favoriteHotels[index];
+                return Dismissible(
+                  key: Key('favorite-hotel-${hotel.id}'),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20.0),
+                    color: Colors.red,
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  onDismissed: (direction) {
+                    _removeFavorite(hotel);
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey,
+                          width: 0.2,
+                        ),
+                      ),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        hotel.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, 
+                        vertical: 16,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailPage(product: hotel),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
