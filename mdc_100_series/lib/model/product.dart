@@ -30,6 +30,7 @@ class Product {
     this.location = '',
     this.description,
     this.phoneNumber = '',
+    this.imageUrl,
   });
 
   final Category category;
@@ -41,9 +42,10 @@ class Product {
   final String location;
   final String? description;
   final String phoneNumber;
+  final String? imageUrl;
 
-  String get assetName => '$id-0.jpg';
-  String get assetPackage => 'shrine_images';
+  String get assetName => imageUrl ?? '$id-0.jpg';
+  String get assetPackage => imageUrl != null ? '' : 'shrine_images';
 
   @override
   String toString() => "$name (id=$id)";

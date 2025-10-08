@@ -11,13 +11,12 @@ class _SearchPageState extends State<SearchPage> {
   // ===== Filters =====
   bool noKidsZone = false;
   bool petFriendly = false;
-  bool freeBreakfast = true;   
+  bool freeBreakfast = false;   
   bool freeWifi = false;
   bool electricCarCharging = false;
 
   // ===== Dates =====
   DateTime? checkInDate;
-  DateTime? checkOutDate;
 
   // ===== Expansion states (Filter, Date) =====
   List<bool> _isExpanded = [false, false];
@@ -134,27 +133,6 @@ class _SearchPageState extends State<SearchPage> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 20),
-
-                              // Check-out
-                              Row(
-                                children: const [
-                                  Icon(Icons.flight_land, color: Colors.grey),
-                                  SizedBox(width: 12),
-                                  Text('check-out', style: TextStyle(fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(child: _dateTexts(checkOutDate, fallbackDate: '2018.10.07 (SUN)', fallbackTime: '11:00 am')),
-                                  ElevatedButton(
-                                    onPressed: _pickCheckOut,
-                                    style: _dateBtnStyle(),
-                                    child: const Text('select date'),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
                         ),
@@ -240,27 +218,11 @@ class _SearchPageState extends State<SearchPage> {
     if (picked != null) {
       setState(() {
         checkInDate = picked;
-        // 체크인보다 이전인 체크아웃을 자동 보정
-        if (checkOutDate != null && !checkOutDate!.isAfter(checkInDate!)) {
-          checkOutDate = checkInDate!.add(const Duration(days: 1));
-        }
       });
     }
   }
 
-  Future<void> _pickCheckOut() async {
-    final base = checkInDate ?? DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: checkOutDate ?? base.add(const Duration(days: 1)),
-      firstDate: base.add(const Duration(days: 1)),
-      lastDate: DateTime(2030, 12, 31),
-      builder: _pickerTheme,
-    );
-    if (picked != null) {
-      setState(() => checkOutDate = picked);
-    }
-  }
+
 
   Widget _pickerTheme(BuildContext context, Widget? child) {
     return Theme(
@@ -283,7 +245,6 @@ class _SearchPageState extends State<SearchPage> {
     final filtersText = filters.isEmpty ? 'No filters selected' : '${filters.join(' / ')} /';
 
     final inText = checkInDate != null ? _fmtYmdDow(checkInDate!) : 'Not selected';
-    final outText = checkOutDate != null ? _fmtYmdDow(checkOutDate!) : 'Not selected';
 
     showDialog(
       context: context,
@@ -315,18 +276,9 @@ class _SearchPageState extends State<SearchPage> {
               children: [
                 const Icon(Icons.calendar_today, color: Colors.blue, size: 20),
                 const SizedBox(width: 8),
-                const Text('IN', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Check-in', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
                 Text(inText),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const SizedBox(width: 28),
-                const Text('OUT', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
-                Text(outText),
               ],
             ),
           ],
@@ -373,7 +325,7 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           const DrawerHeader(
             decoration: BoxDecoration(color: Colors.blue),
-            child: Text('SHRINE', style: TextStyle(color: Colors.white, fontSize: 24)),
+            child: Text('Pages', style: TextStyle(color: Colors.white, fontSize: 24)),
           ),
           ListTile(
             leading: const Icon(Icons.home, color: Colors.lightBlueAccent),

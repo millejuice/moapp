@@ -20,7 +20,6 @@ import 'signup.dart';
 import 'menu_pages.dart' hide SearchPage;
 import 'search_page.dart';
 
-// TODO: Convert ShrineApp to stateful widget (104)
 class ShrineApp extends StatelessWidget {
   const ShrineApp({Key? key}) : super(key: key);
 
@@ -32,14 +31,11 @@ class ShrineApp extends StatelessWidget {
       routes: {
         '/login': (BuildContext context) => const LoginPage(),
         '/signup': (BuildContext context) => const SignUpPage(),
-        // TODO: Change to a Backdrop with a HomePage frontLayer (104)
         '/': (BuildContext context) => const HomePage(),
         '/search': (BuildContext context) => const SearchPage(),
         '/favorite-hotels': (BuildContext context) => const FavoriteHotelsPage(),
         '/my-page': (BuildContext context) => const MyPage(),
-        // TODO: Make currentCategory field take _currentCategory (104)
-        // TODO: Pass _currentCategory for frontLayer (104)
-        // TODO: Change backLayer field value to CategoryMenuPage (104)
+
       },
       // TODO: Customize the theme (103)
       theme: ThemeData.light(useMaterial3: true),

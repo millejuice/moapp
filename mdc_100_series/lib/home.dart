@@ -82,14 +82,58 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             // Hotel Image (Top)
             AspectRatio(
-              aspectRatio: 16 / 10,
+              aspectRatio: 16 / 14,
               child: Hero(
                 tag: 'hotel-image-${product.id}',
-                child: Image.asset(
-                  product.assetName,
-                  package: product.assetPackage,
-                  fit: BoxFit.cover,
-                ),
+                flightShuttleBuilder: (context, animation, flightDirection, fromHeroContext, toHeroContext) {
+                  return Material(
+                    child: toHeroContext.widget,
+                  );
+                },
+                child: product.imageUrl != null
+                    ? Image.network(
+                        product.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.hotel,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded / 
+                                      loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        product.assetName,
+                        package: product.assetPackage,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.hotel,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
               ),
             ),
             // Hotel Info (Bottom)
@@ -198,20 +242,58 @@ class _HomePageState extends State<HomePage> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: SizedBox(
-                  width: 80,
-                  height: 80,
+                  width: 120,
+                  height: 120,
                   child: Hero(
                     tag: 'hotel-image-${product.id}',
-                    child: Image.asset(
-                      product.assetName,
-                      package: product.assetPackage,
-                      fit: BoxFit.cover,
-                    ),
+                    flightShuttleBuilder: (context, animation, flightDirection, fromHeroContext, toHeroContext) {
+                      return Material(
+                        child: toHeroContext.widget,
+                      );
+                    },
+                    child: product.imageUrl != null
+                        ? Image.network(
+                            product.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.hotel,
+                                  size: 32,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            product.assetName,
+                            package: product.assetPackage,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.hotel,
+                                  size: 32,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ),
               ),
               const SizedBox(width: 12.0),
-              // Hotel Info (Right)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,7 +375,6 @@ class _HomePageState extends State<HomePage> {
     }).toList();
   }
 
-  // Drawer widget for navigation menu
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
       child: ListView(
@@ -360,7 +441,7 @@ class _HomePageState extends State<HomePage> {
       // TODO: Add app bar (102)
       // TODO: Add a grid view (102)
       appBar: AppBar(
-        title: const Text('Main'),
+        title: const Text('Main', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
         centerTitle: true,
         // TODO: Add buttons and title (102)
@@ -370,6 +451,7 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(
               Icons.search,
               semanticLabel: 'search',
+              color: Colors.white,
             ),
             onPressed: () {
               Navigator.pushNamed(context, '/search');
@@ -380,7 +462,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon: const Icon(
                   Icons.favorite,
-                  semanticLabel: 'favorites',
+                  color: Colors.white,
                 ),
                 onPressed: () {
                   Navigator.pushNamed(context, '/favorite-hotels');
@@ -417,17 +499,17 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(
               Icons.language,
               semanticLabel: 'language',
+              color: Colors.white,
             ),
             onPressed: () {
               _launchURL('https://www.handong.edu/');
             },
           ),
         ],
-      ),
+      ),      
       drawer: _buildDrawer(context),
       body: Column(
         children: [
-          // Toggle Button for switching between ListView and GridView
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
@@ -459,7 +541,6 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          // Content area - ListView or GridView based on selection
           Expanded(
             child: _isSelected[0] 
                 ? ListView(

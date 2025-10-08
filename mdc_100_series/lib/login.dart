@@ -62,28 +62,22 @@ class _LoginPageState extends State<LoginPage> {
             OverflowBar(
               alignment: MainAxisAlignment.end,
               children: <Widget>[
-                // TODO: Add a beveled rectangular border to CANCEL (103)
                 TextButton(
                   child: const Text('CANCEL'),
                   onPressed: () {
-                    // Clear the text fields when Cancel is pressed
                     _usernameController.clear();
                     _passwordController.clear();
                   },
                 ),
-                // TODO: Add an elevation to NEXT (103)
                 TextButton(
                   child: const Text('Sign Up'),
                   onPressed: () {
-                    // Navigate to Sign Up page
                     Navigator.pushNamed(context, '/signup');
                   },
                 ),
-                // TODO: Add a beveled rectangular border to NEXT (103)
                 ElevatedButton(
                   child: const Text('NEXT'),
                   onPressed: () {
-                    // Navigate to Main Page (HomePage)
                     Navigator.pushReplacementNamed(context, '/');
                   },
                 ),

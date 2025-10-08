@@ -22,7 +22,6 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  // Create a global key that uniquely identifies the Form widget
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -50,9 +49,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     return 'Please enter a username';
                   }
                   
-                  // Count alphabetic characters
                   int alphabetCount = value.replaceAll(RegExp(r'[^a-zA-Z]'), '').length;
-                  // Count numeric characters
                   int numberCount = value.replaceAll(RegExp(r'[^0-9]'), '').length;
                   
                   if (alphabetCount < 3 || numberCount < 3) {
@@ -74,9 +71,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a password';
                   }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
+                  // if (value.length < 6) {
+                  //   return 'Password must be at least 6 characters';
+                  // }
                   return null;
                 },
               ),
@@ -110,9 +107,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter an email address';
                   }
-                  if (!value.contains('@') || !value.contains('.')) {
-                    return 'Please enter a valid email address';
-                  }
+                  // if (!value.contains('@') || !value.contains('.')) {
+                  //   return 'Please enter a valid email address';
+                  // }
                   return null;
                 },
               ),

@@ -459,7 +459,7 @@ class _SearchPageState extends State<SearchPage> {
               color: Colors.blue,
             ),
             child: Text(
-              'SHRINE',
+              'Pages',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
@@ -698,10 +698,9 @@ class _MyPageState extends State<MyPage> {
           children: [
             const SizedBox(height: 20),
             
-            // Profile Section
+            // Profile
             Column(
               children: [
-                // Profile Picture with Lottie Animation
                 ClipOval(
                   child: Container(
                     width: 120,
@@ -761,7 +760,6 @@ class _MyPageState extends State<MyPage> {
             ),
             const SizedBox(height: 16),
             
-            // Favorite Hotels Cards using ListView and Card with Stack
             if (favoriteHotels.isEmpty)
               Container(
                 width: double.infinity,
@@ -816,25 +814,48 @@ class _MyPageState extends State<MyPage> {
                           height: 180,
                           child: Stack(
                             children: [
-                              // Hotel Image (Background)
                               Positioned.fill(
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Image.asset(
-                                    hotel.assetName,
-                                    package: hotel.assetPackage,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: Colors.grey[300],
-                                        child: const Icon(
-                                          Icons.hotel,
-                                          size: 48,
-                                          color: Colors.grey,
+                                  child: hotel.imageUrl != null
+                                      ? Image.network(
+                                          hotel.imageUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Icon(
+                                                Icons.hotel,
+                                                size: 48,
+                                                color: Colors.grey,
+                                              ),
+                                            );
+                                          },
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Container(
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : Image.asset(
+                                          hotel.assetName,
+                                          package: hotel.assetPackage,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Icon(
+                                                Icons.hotel,
+                                                size: 48,
+                                                color: Colors.grey,
+                                              ),
+                                            );
+                                          },
                                         ),
-                                      );
-                                    },
-                                  ),
                                 ),
                               ),
                               
@@ -908,7 +929,7 @@ Widget _buildDrawer(BuildContext context) {
             color: Colors.blue,
           ),
           child: Text(
-            'SHRINE',
+            'Pages',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,

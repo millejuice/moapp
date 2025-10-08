@@ -62,11 +62,15 @@ class _DetailPageState extends State<DetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Animation for Hotel Image with Heart Icon Stack
             Stack(
               children: [
                 Hero(
-                  tag: 'hotel-image-\${widget.product.id}',
+                  tag: 'hotel-image-${widget.product.id}',
+                  flightShuttleBuilder: (context, animation, flightDirection, fromHeroContext, toHeroContext) {
+                    return Material(
+                      child: toHeroContext.widget,
+                    );
+                  },
                   child: InkWell(
                     onDoubleTap: () {
                       setState(() {
@@ -87,15 +91,48 @@ class _DetailPageState extends State<DetailPage> {
                     child: Container(
                       width: double.infinity,
                       height: 250,
-                      child: Image.asset(
-                        widget.product.assetName,
-                        package: widget.product.assetPackage,
-                        fit: BoxFit.cover,
-                      ),
+                      child: widget.product.imageUrl != null
+                          ? Image.network(
+                              widget.product.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.hotel,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  color: Colors.grey[200],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              widget.product.assetName,
+                              package: widget.product.assetPackage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.hotel,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                   ),
                 ),
-                // Heart icon positioned at top-right
                 Positioned(
                   top: 16.0,
                   right: 16.0,
