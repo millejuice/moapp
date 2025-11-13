@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "506241724506",
+    "project_id": "moappfinal-e52a2",
+    "storage_bucket": "moappfinal-e52a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506241724506:android:3e0e01b3924e9a6cb1a863",
+        "android_client_info": {
+          "package_name": "com.example.shrine"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506241724506-l9nfn6vopc2qj5qoil8kqbir1v02o92g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyOg8RonVO-W6HR1DW7aN2DcwayC7sWr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "506241724506-l9nfn6vopc2qj5qoil8kqbir1v02o92g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "506241724506-mc1g4loa2ijbsr72rnplemk2cmisj062.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.moapp.final"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506241724506:android:2f848c03cba48d22b1a863",
+        "android_client_info": {
+          "package_name": "com.moapp.final"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506241724506-l9nfn6vopc2qj5qoil8kqbir1v02o92g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyOg8RonVO-W6HR1DW7aN2DcwayC7sWr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "506241724506-l9nfn6vopc2qj5qoil8kqbir1v02o92g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "506241724506-mc1g4loa2ijbsr72rnplemk2cmisj062.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.moapp.final"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

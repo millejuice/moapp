@@ -11,6 +11,21 @@ dependencies:
 
   cupertino_icons: ^1.0.5
   shrine_images: ^2.0.2
+  
+  # Firebase
+  
+  # Google Sign In
+  
+  # Image Picker
+  image_picker: ^1.0.7
+  
+  # HTTP
+  http: ^1.1.0
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  firebase_storage: ^13.0.4
+  google_sign_in: 6.1.4
 
 dev_dependencies:
   flutter_test:

@@ -34,11 +34,25 @@ class ProductCard extends StatelessWidget {
         decimalDigits: 0, locale: Localizations.localeOf(context).toString());
     final ThemeData theme = Theme.of(context);
 
-    final imageWidget = Image.asset(
-      product.assetName,
-      package: product.assetPackage,
-      fit: BoxFit.fitWidth,
-    );
+    final imageWidget = product.imageUrl.isNotEmpty
+        ? Image.network(
+            product.imageUrl,
+            fit: BoxFit.fitWidth,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(Icons.image, size: 50),
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            },
+          )
+        : const Center(
+            child: Icon(Icons.image, size: 50),
+          );
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,

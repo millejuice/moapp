@@ -1,16 +1,4 @@
-// Copyright 2018-present the Flutter authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum Category {
   all,
@@ -20,22 +8,116 @@ enum Category {
 }
 
 class Product {
-  const Product({
-    required this.category,
-    required this.id,
-    required this.isFeatured,
-    required this.name,
-    required this.price,
-  });
-
-  final Category category;
-  final int id;
-  final bool isFeatured;
+  final String? id;
   final String name;
   final int price;
+  final String description;
+  final String imageUrl;
+  final String creatorUid;
+  final Timestamp? createdAt;
+  final Timestamp? updatedAt;
+  final int likes;
+  final List<String> likedBy;
+  final Category category;
+  final bool isFeatured;
 
-  String get assetName => '$id-0.jpg';
-  String get assetPackage => 'shrine_images';
+  Product({
+    this.id,
+    required this.name,
+    required this.price,
+    this.description = '',
+    required this.imageUrl,
+    required this.creatorUid,
+    this.createdAt,
+    this.updatedAt,
+    this.likes = 0,
+    this.likedBy = const [],
+    this.category = Category.all,
+    this.isFeatured = false,
+  });
+
+  // Create from Firestore document
+  factory Product.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Product(
+      id: doc.id,
+      name: data['name'] ?? '',
+      price: data['price'] ?? 0,
+      description: data['description'] ?? '',
+      imageUrl: data['imageUrl'] ?? '',
+      creatorUid: data['creatorUid'] ?? '',
+      createdAt: data['createdAt'],
+      updatedAt: data['updatedAt'],
+      likes: data['likes'] ?? 0,
+      likedBy: List<String>.from(data['likedBy'] ?? []),
+      category: _parseCategory(data['category']),
+      isFeatured: data['isFeatured'] ?? false,
+    );
+  }
+
+  // Convert to Firestore map
+  Map<String, dynamic> toFirestore({bool isUpdate = false}) {
+    final map = <String, dynamic>{
+      'name': name,
+      'price': price,
+      'description': description,
+      'imageUrl': imageUrl,
+      'creatorUid': creatorUid,
+      'updatedAt': FieldValue.serverTimestamp(),
+      'likes': likes,
+      'likedBy': likedBy,
+      'category': category.toString().split('.').last,
+      'isFeatured': isFeatured,
+    };
+    
+    // Only set createdAt when creating new document
+    if (!isUpdate) {
+      map['createdAt'] = createdAt ?? FieldValue.serverTimestamp();
+    }
+    
+    return map;
+  }
+
+  // Copy with method for updates
+  Product copyWith({
+    String? name,
+    int? price,
+    String? description,
+    String? imageUrl,
+    int? likes,
+    List<String>? likedBy,
+    Timestamp? updatedAt,
+  }) {
+    return Product(
+      id: id,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      creatorUid: creatorUid,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      likes: likes ?? this.likes,
+      likedBy: likedBy ?? this.likedBy,
+      category: category,
+      isFeatured: isFeatured,
+    );
+  }
+
+  static Category _parseCategory(dynamic categoryData) {
+    if (categoryData == null) return Category.all;
+    final categoryStr = categoryData.toString().toLowerCase();
+    switch (categoryStr) {
+      case 'accessories':
+        return Category.accessories;
+      case 'clothing':
+        return Category.clothing;
+      case 'home':
+        return Category.home;
+      default:
+        return Category.all;
+    }
+  }
 
   @override
   String toString() => "$name (id=$id)";

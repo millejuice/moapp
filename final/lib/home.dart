@@ -1,120 +1,187 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'model/product.dart';
-import 'model/products_repository.dart';
+import 'services/firestore_service.dart';
+import 'detail_page.dart';
+import 'add_product_page.dart';
+import 'profile_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
-// TODO: Make a collection of cards (102)
+  @override
+  _HomePageState createState() => _HomePageState();
+}
 
-// Replace this entire method
-List<Card> _buildGridCards(BuildContext context) {
-  List<Product> products = ProductsRepository.loadProducts(Category.all);
+class _HomePageState extends State<HomePage> {
+  final FirestoreService _firestoreService = FirestoreService();
+  String _sortOrder = 'ASC';
 
-  if (products.isEmpty) {
-    return const <Card>[];
-  }
-
-  final ThemeData theme = Theme.of(context);
-  final NumberFormat formatter = NumberFormat.simpleCurrency(
-      locale: Localizations.localeOf(context).toString());
-
-  return products.map((product) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      // TODO: Adjust card heights (103)
-      child: Column(
-        // TODO: Center items on the card (103)
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          AspectRatio(
-            aspectRatio: 18 / 11,
-            child: Image.asset(
-              product.assetName,
-              package: product.assetPackage,
-             // TODO: Adjust the box size (102)
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Main'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.person),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
+            );
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddProductPage()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Dropdown for sorting
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: DropdownButton<String>(
+              value: _sortOrder,
+              isExpanded: true,
+              items: const [
+                DropdownMenuItem(value: 'ASC', child: Text('ASC')),
+                DropdownMenuItem(value: 'DESC', child: Text('DESC')),
+              ],
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _sortOrder = newValue;
+                  });
+                }
+              },
             ),
           ),
+          // Product grid
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-              child: Column(
-               // TODO: Align labels to the bottom and center (103)
-               crossAxisAlignment: CrossAxisAlignment.start,
-                // TODO: Change innermost Column (103)
-                children: <Widget>[
-                 // TODO: Handle overflowing labels (103)
-                 Text(
-                    product.name,
-                    style: theme.textTheme.titleLarge,
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    formatter.format(product.price),
-                    style: theme.textTheme.titleSmall,
-                  ),
-                ],
-              ),
+            child: StreamBuilder<List<Product>>(
+              stream: _firestoreService.getProductsSorted(_sortOrder),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('오류: ${snapshot.error}'));
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('상품이 없습니다.'));
+                }
+
+                return _buildGridCards(context, snapshot.data!);
+              },
             ),
           ),
         ],
       ),
     );
-  }).toList();
-}
+  }
 
+  Widget _buildGridCards(BuildContext context, List<Product> products) {
+    final ThemeData theme = Theme.of(context);
+    final NumberFormat formatter = NumberFormat.simpleCurrency(
+      locale: Localizations.localeOf(context).toString(),
+    );
 
-  @override
-  Widget build(BuildContext context) {
-    // TODO: Return an AsymmetricView (104)
-    // TODO: Pass Category variable to AsymmetricView (104)
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SHRINE'),
-        centerTitle: true,
-            // TODO: Add buttons and title (102)
-    leading: IconButton(
-      icon: const Icon(
-        Icons.menu,
-        semanticLabel: 'menu',
+    return GridView.builder(
+      padding: const EdgeInsets.all(16.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        // 카드 세로 공간 넉넉하게 확보 (0.75 → 0.6)
+        childAspectRatio: 0.6,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
       ),
-      onPressed: () {
-        print('Menu button');
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                flex: 3,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    product.imageUrl.isNotEmpty
+                        ? Image.network(
+                            product.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(Icons.image, size: 50),
+                              );
+                            },
+                          )
+                        : const Center(
+                            child: Icon(Icons.image, size: 50),
+                          ),
+                  ],
+                ),
+              ),
+              Expanded(
+                // 텍스트/버튼 영역 flex 늘려서 공간 확보 (2 → 3)
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        style: theme.textTheme.titleMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatter.format(product.price),
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      const Spacer(),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: TextButton(
+                          onPressed: product.id != null
+                              ? () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailPage(productId: product.id!),
+                                    ),
+                                  );
+                                }
+                              : null,
+                          child: const Text('more'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       },
-    ),
-    // TODO: Add trailing buttons (102)
-actions: <Widget>[
-  IconButton(
-    icon: const Icon(
-      Icons.search,
-      semanticLabel: 'search',
-    ),
-    onPressed: () {
-      print('Search button');
-    },
-  ),
-  IconButton(
-    icon: const Icon(
-      Icons.tune,
-      semanticLabel: 'filter',
-    ),
-    onPressed: () {
-      print('Filter button');
-    },
-  ),
-],
-      ),
-// TODO: Add a grid view (102)
-body: GridView.count(
-  crossAxisCount: 2,
-  padding: const EdgeInsets.all(16.0),
-  childAspectRatio: 8.0 / 9.0,
-  children: _buildGridCards(context) // Replace
-),
-      resizeToAvoidBottomInset: false,
     );
   }
 }
