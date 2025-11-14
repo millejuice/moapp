@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'model/product.dart';
 import 'services/firestore_service.dart';
 import 'detail_page.dart';
@@ -9,6 +8,7 @@ import 'profile_page.dart';
 import 'package:provider/provider.dart';
 import 'services/wishlist_provider.dart';
 import 'wishlist_page.dart';
+import 'package:shrine/services/login_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -25,7 +25,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Main'),
+        title: Consumer<LoginProvider>(
+          builder: (context, loginProv, _) {
+            return Text(loginProv.appBarTitle);
+          },
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.person),

@@ -16,8 +16,11 @@ class WishlistProvider extends ChangeNotifier {
   }
 
   void toggle(String productId) {
-    if (contains(productId)) remove(productId);
-    else add(productId);
+    if (contains(productId)) {
+      remove(productId);
+    } else {
+      add(productId);
+    }
   }
 
   List<String> get items => _wishlist.toList();

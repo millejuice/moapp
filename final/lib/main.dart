@@ -5,6 +5,7 @@ import 'package:shrine/app.dart';
 import 'firebase_options.dart';
 import 'services/wishlist_provider.dart';
 import 'package:shrine/services/user_profile_provider.dart';
+import 'package:shrine/services/login_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,8 +15,9 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => WishlistProvider()),
-        ChangeNotifierProvider(create: (_) => UserProfileProvider()),
+  ChangeNotifierProvider(create: (_) => WishlistProvider()),
+  ChangeNotifierProvider(create: (_) => UserProfileProvider()),
+  ChangeNotifierProvider(create: (_) => LoginProvider()),
       ],
       child: const ShrineApp(),
     ),

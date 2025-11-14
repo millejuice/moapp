@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'model/product.dart';
 import 'services/firestore_service.dart';
 import 'services/storage_service.dart';
-import 'add_product_page.dart';
 import 'package:provider/provider.dart';
 import 'services/wishlist_provider.dart';
 
