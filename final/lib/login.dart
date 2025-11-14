@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'services/auth_service.dart';
+import 'home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -19,7 +20,11 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final userCredential = await _authService.signInWithGoogle();
       if (userCredential != null && mounted) {
-        // Successful sign-in: authStateChanges stream will update and App will navigate to HomePage.
+        // Successful sign-in: navigate to Home immediately to avoid waiting on stream.
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Google 로그인에 실패했습니다.')),
@@ -43,7 +48,10 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final userCredential = await _authService.signInAnonymously();
       if (userCredential != null && mounted) {
-        // Successful anonymous sign-in: authStateChanges will update and App will navigate accordingly.
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('익명 로그인에 실패했습니다.')),

@@ -138,8 +138,16 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   void _startEdit() {
-    setState(() {
-      _isEditing = true;
+    // Open the edit page immediately instead of toggling an inline edit state.
+    if (_product == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProductPage(product: _product!),
+      ),
+    ).then((_) {
+      // Reload product after returning from edit page
+      _loadProduct();
     });
   }
 

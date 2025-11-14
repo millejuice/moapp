@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/product.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -124,6 +125,33 @@ class FirestoreService {
     } catch (e) {
       print('Error checking like status: $e');
       return false;
+    }
+  }
+
+  /// Create a user document (named by uid) if it doesn't exist.
+  Future<void> createUserIfNotExists(User user) async {
+    try {
+      final usersRef = _firestore.collection('users').doc(user.uid);
+      final doc = await usersRef.get();
+      if (!doc.exists) {
+        // Default honor code pledge
+        const pledge = 'I promise to take the test honestly before GOD.';
+        if (user.isAnonymous) {
+          await usersRef.set({
+            'uid': user.uid,
+            'status_message': pledge,
+          });
+        } else {
+          await usersRef.set({
+            'name': user.displayName ?? 'User',
+            'email': user.email ?? 'Anonymous',
+            'uid': user.uid,
+            'status_message': pledge,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error creating user document: $e');
     }
   }
 }

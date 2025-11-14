@@ -57,15 +57,16 @@ class DefaultFirebaseOptions {
     storageBucket: 'moappfinal-e52a2.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAW5z4Urq61cx5c2IByyRGoPFxMtDV_Z40',
-    appId: '1:506241724506:ios:1c456da29ddd77cdb1a863',
-    messagingSenderId: '506241724506',
-    projectId: 'moappfinal-e52a2',
-    storageBucket: 'moappfinal-e52a2.firebasestorage.app',
-    iosClientId: '506241724506-ueg7d3ed58kpvfeqrse9a69cm7ak7e95.apps.googleusercontent.com',
-    iosBundleId: 'com.example.mdc100Series',
-  );
+static const FirebaseOptions ios = FirebaseOptions(
+  apiKey: 'AIzaSyAW5z4Urq61cx5c2IByyRGoPFxMtDV_Z40',
+  appId: '1:506241724506:ios:363b19f8d1fe8547b1a863',
+  messagingSenderId: '506241724506',
+  projectId: 'moappfinal-e52a2',
+  storageBucket: 'moappfinal-e52a2.firebasestorage.app',
+  iosClientId: '506241724506-mc1g4loa2ijbsr72rnplemk2cmisj062.apps.googleusercontent.com',
+  iosBundleId: 'com.moapp.final',
+);
+
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAW5z4Urq61cx5c2IByyRGoPFxMtDV_Z40',

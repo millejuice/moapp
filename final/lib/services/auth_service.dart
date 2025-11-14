@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'firestore_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -26,7 +27,17 @@ class AuthService {
       );
 
       // Step 4: Firebase 로그인 처리
-      return await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      // Ensure user document exists
+      try {
+        final user = userCredential.user;
+        if (user != null) {
+          await FirestoreService().createUserIfNotExists(user);
+        }
+      } catch (e) {
+        print('Error ensuring user doc: $e');
+      }
+      return userCredential;
     } catch (e) {
       print('Google Login Error: $e');
       return null;
@@ -35,6 +46,32 @@ class AuthService {
 
   /// 익명 로그인
   Future<UserCredential?> signInAnonymously() async {
-    return await _auth.signInAnonymously();
+    final userCredential = await _auth.signInAnonymously();
+    try {
+      final user = userCredential.user;
+      if (user != null) {
+        await FirestoreService().createUserIfNotExists(user);
+      }
+    } catch (e) {
+      print('Error ensuring user doc: $e');
+    }
+    return userCredential;
+  }
+
+  /// 로그아웃
+  Future<void> signOut() async {
+    try {
+      // Sign out from Firebase
+      await _auth.signOut();
+      // Also sign out from Google if signed in
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {
+        // ignore google sign out errors
+      }
+    } catch (e) {
+      print('Sign out error: $e');
+      rethrow;
+    }
   }
 }

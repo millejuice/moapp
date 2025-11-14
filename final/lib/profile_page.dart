@@ -36,7 +36,7 @@ class ProfilePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {
-              // await authService.signOut();
+              await authService.signOut();
               if (context.mounted) {
                 Navigator.pushReplacementNamed(context, '/login');
               }
