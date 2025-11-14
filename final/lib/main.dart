@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'services/wishlist_provider.dart';
 import 'package:shrine/services/user_profile_provider.dart';
 import 'package:shrine/services/login_provider.dart';
+import 'package:shrine/services/dropdown_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ Future<void> main() async {
   ChangeNotifierProvider(create: (_) => WishlistProvider()),
   ChangeNotifierProvider(create: (_) => UserProfileProvider()),
   ChangeNotifierProvider(create: (_) => LoginProvider()),
+  ChangeNotifierProvider(create: (_) => DropDownProvider()),
       ],
       child: const ShrineApp(),
     ),

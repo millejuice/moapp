@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'services/wishlist_provider.dart';
 import 'wishlist_page.dart';
 import 'package:shrine/services/login_provider.dart';
+import 'package:shrine/services/dropdown_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,7 +20,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final FirestoreService _firestoreService = FirestoreService();
-  String _sortOrder = 'ASC';
 
   @override
   Widget build(BuildContext context) {
@@ -66,40 +66,45 @@ class _HomePageState extends State<HomePage> {
           // Dropdown for sorting
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: DropdownButton<String>(
-              value: _sortOrder,
-              isExpanded: true,
-              items: const [
-                DropdownMenuItem(value: 'ASC', child: Text('ASC')),
-                DropdownMenuItem(value: 'DESC', child: Text('DESC')),
-              ],
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    _sortOrder = newValue;
-                  });
-                }
+            child: Consumer<DropDownProvider>(
+              builder: (BuildContext context, DropDownProvider dd, _) {
+                return DropdownButton<String>(
+                  value: dd.value,
+                  isExpanded: true,
+                  items: const [
+                    DropdownMenuItem(value: 'ASC', child: Text('ASC')),
+                    DropdownMenuItem(value: 'DESC', child: Text('DESC')),
+                  ],
+                  onChanged: (String? newValue) {
+                    if (newValue != null) dd.setValue(newValue);
+                  },
+                );
               },
             ),
           ),
+
           // Product grid
           Expanded(
-            child: StreamBuilder<List<Product>>(
-              stream: _firestoreService.getProductsSorted(_sortOrder),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            child: Consumer<DropDownProvider>(
+              builder: (BuildContext context, DropDownProvider dd, _) {
+                return StreamBuilder<List<Product>>(
+                  stream: _firestoreService.getProductsSorted(dd.value),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('오류: ${snapshot.error}'));
-                }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('오류: ${snapshot.error}'));
+                    }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('상품이 없습니다.'));
-                }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('상품이 없습니다.'));
+                    }
 
-                return _buildGridCards(context, snapshot.data!);
+                    return _buildGridCards(context, snapshot.data!);
+                  },
+                );
               },
             ),
           ),
