@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
+import 'package:shrine/services/user_profile_provider.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -10,6 +12,16 @@ class ProfilePage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final authService = AuthService();
 
+    // Provide the UserProfileProvider for this page and load the user doc
+    if (user != null) {
+      // ensure provider is available
+      final provider = Provider.of<UserProfileProvider>(context, listen: false);
+      // load only if not already loaded
+      if (provider.data == null) {
+        provider.load(user.uid);
+      }
+    }
+
     if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Profile')),
@@ -17,13 +29,13 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    // Determine user info based on login method
-    final isAnonymous = user.isAnonymous;
-    final profilePhotoUrl = isAnonymous
-        ? 'http://handong.edu/site/handong/res/img/logo.png'
-        : user.photoURL ?? 'http://handong.edu/site/handong/res/img/logo.png';
-    final email = isAnonymous ? 'Anonymous' : (user.email ?? 'Anonymous');
-    final displayName = isAnonymous ? 'Guest User' : (user.displayName ?? 'User');
+  // Determine user info based on login method and Firestore user doc when available
+  final isAnonymous = user.isAnonymous;
+  final profilePhotoUrl = isAnonymous
+    ? 'http://handong.edu/site/handong/res/img/logo.png'
+    : user.photoURL ?? 'http://handong.edu/site/handong/res/img/logo.png';
+  final email = isAnonymous ? 'Anonymous' : (user.email ?? 'Anonymous');
+  final displayName = isAnonymous ? 'Guest User' : (user.displayName ?? 'User');
 
     return Scaffold(
       appBar: AppBar(
@@ -96,16 +108,68 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 48),
-            // Honor Code
+            // Status message / Honor Code (from Firestore when available)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Text(
-                'I promise to take the test honestly before GOD.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontStyle: FontStyle.italic,
-                ),
+              child: Consumer<UserProfileProvider>(
+                builder: (context, profileProvider, _) {
+                  final data = profileProvider.data;
+                  final status = data != null && data['status_message'] != null
+                      ? data['status_message'] as String
+                      : 'I promise to take the test honestly before GOD.';
+
+                  if (profileProvider.isEditing) {
+                    final controller = TextEditingController(text: status);
+                    return Column(
+                      children: [
+                        TextField(
+                          controller: controller,
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () async {
+                                final success = await profileProvider.save(user.uid, controller.text);
+                                if (success && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Saved')),
+                                  );
+                                }
+                              },
+                              child: const Text('Save'),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton(
+                              onPressed: () => profileProvider.stopEditing(),
+                              child: const Text('Cancel'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      Text(
+                        status,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => profileProvider.startEditing(),
+                        child: const Text('Edit'),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

@@ -154,5 +154,28 @@ class FirestoreService {
       print('Error creating user document: $e');
     }
   }
+
+  // Get user document data
+  Future<Map<String, dynamic>?> getUser(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) return doc.data() as Map<String, dynamic>;
+      return null;
+    } catch (e) {
+      print('Error getting user: $e');
+      return null;
+    }
+  }
+
+  // Update user document fields
+  Future<bool> updateUser(String uid, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('users').doc(uid).update(data);
+      return true;
+    } catch (e) {
+      print('Error updating user: $e');
+      return false;
+    }
+  }
 }
 

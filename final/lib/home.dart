@@ -6,6 +6,9 @@ import 'services/firestore_service.dart';
 import 'detail_page.dart';
 import 'add_product_page.dart';
 import 'profile_page.dart';
+import 'package:provider/provider.dart';
+import 'services/wishlist_provider.dart';
+import 'wishlist_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -34,6 +37,15 @@ class _HomePageState extends State<HomePage> {
           },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const WishlistPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
@@ -102,7 +114,6 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(16.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        // 카드 세로 공간 넉넉하게 확보 (0.75 → 0.6)
         childAspectRatio: 0.6,
         crossAxisSpacing: 16.0,
         mainAxisSpacing: 16.0,
@@ -110,76 +121,88 @@ class _HomePageState extends State<HomePage> {
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    product.imageUrl.isNotEmpty
-                        ? Image.network(
-                            product.imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(Icons.image, size: 50),
-                              );
-                            },
-                          )
-                        : const Center(
-                            child: Icon(Icons.image, size: 50),
+        return Consumer<WishlistProvider>(
+          builder: (context, wishlist, _) {
+            final inWishlist = product.id != null && wishlist.contains(product.id!);
+            return Card(
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  // Image area with optional wishlist badge
+                  Expanded(
+                    flex: 3,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        product.imageUrl.isNotEmpty
+                            ? Image.network(
+                                product.imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(child: Icon(Icons.image, size: 50));
+                                },
+                              )
+                            : const Center(child: Icon(Icons.image, size: 50)),
+                        if (inWishlist)
+                          const Positioned(
+                            top: 8,
+                            right: 8,
+                            child: CircleAvatar(
+                              radius: 14,
+                              backgroundColor: Colors.blue,
+                              child: Icon(Icons.check, color: Colors.white, size: 18),
+                            ),
                           ),
-                  ],
-                ),
-              ),
-              Expanded(
-                // 텍스트/버튼 영역 flex 늘려서 공간 확보 (2 → 3)
-                flex: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        style: theme.textTheme.titleMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        formatter.format(product.price),
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      const Spacer(),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: TextButton(
-                          onPressed: product.id != null
-                              ? () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          DetailPage(productId: product.id!),
-                                    ),
-                                  );
-                                }
-                              : null,
-                          child: const Text('more'),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+
+                  // Text/Action area
+                  Expanded(
+                    flex: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.name,
+                            style: theme.textTheme.titleMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formatter.format(product.price),
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          const Spacer(),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: TextButton(
+                              onPressed: product.id != null
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => DetailPage(productId: product.id!),
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                              child: const Text('more'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

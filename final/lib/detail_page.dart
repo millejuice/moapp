@@ -8,6 +8,8 @@ import 'model/product.dart';
 import 'services/firestore_service.dart';
 import 'services/storage_service.dart';
 import 'add_product_page.dart';
+import 'package:provider/provider.dart';
+import 'services/wishlist_provider.dart';
 
 class DetailPage extends StatefulWidget {
   final String productId;
@@ -187,6 +189,25 @@ class _DetailPageState extends State<DetailPage> {
     final canEdit = user != null && _product!.creatorUid == user.uid;
 
     return Scaffold(
+      floatingActionButton: Consumer<WishlistProvider>(
+        builder: (context, wishlist, child) {
+          final inWishlist = _product != null && wishlist.contains(_product!.id ?? '');
+          return FloatingActionButton(
+            onPressed: _product == null
+                ? null
+                : () {
+                    if (_product!.id == null) return;
+                    wishlist.toggle(_product!.id!);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(inWishlist ? 'Removed from wishlist' : 'Added to wishlist'),
+                      ),
+                    );
+                  },
+            child: Icon(inWishlist ? Icons.check : Icons.shopping_cart),
+          );
+        },
+      ),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
