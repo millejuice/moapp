@@ -3,7 +3,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  // Use explicit bucket provided by user to ensure uploads go to the correct Storage
+  final FirebaseStorage _storage = FirebaseStorage.instanceFor(
+    bucket: 'gs://moappfinal-e52a2.firebasestorage.app',
+  );
 
   // Upload image
   Future<String?> uploadImage(File imageFile, String productId) async {
@@ -20,13 +23,20 @@ class StorageService {
   // Get default image URL
   Future<String?> getDefaultImageUrl() async {
     try {
-      // Download default image and upload to storage
+      // Try to reuse already uploaded default image in storage
+      final ref = _storage.ref().child('default/product_default.jpg');
+      try {
+        final existing = await ref.getDownloadURL();
+        return existing;
+      } catch (_) {
+        // Not found: download external default image and upload it
+      }
+
       const defaultImageUrl = 'http://handong.edu/site/handong/res/img/logo.png';
       final response = await http.get(Uri.parse(defaultImageUrl));
-      
+
       if (response.statusCode == 200) {
         // Upload to Firebase Storage
-        final ref = _storage.ref().child('default/product_default.jpg');
         await ref.putData(response.bodyBytes);
         return await ref.getDownloadURL();
       }

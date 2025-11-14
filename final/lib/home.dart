@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
             return Text(loginProv.appBarTitle);
           },
         ),
+        backgroundColor: Colors.grey,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.person),

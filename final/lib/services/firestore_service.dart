@@ -52,7 +52,11 @@ class FirestoreService {
   // Add product
   Future<String?> addProduct(Product product) async {
     try {
-      final docRef = await productsCollection.add(product.toFirestore());
+      final data = product.toFirestore();
+      // Ensure likes and likedBy are present for new documents
+      data['likes'] = data['likes'] ?? 0;
+      data['likedBy'] = data['likedBy'] ?? [];
+      final docRef = await productsCollection.add(data);
       return docRef.id;
     } catch (e) {
       print('Error adding product: $e');
@@ -87,28 +91,50 @@ class FirestoreService {
 
   // Like product
   Future<bool> likeProduct(String productId, String userId) async {
+    final productRef = productsCollection.doc(productId);
     try {
-      final productRef = productsCollection.doc(productId);
-      final productDoc = await productRef.get();
-      
-      if (!productDoc.exists) return false;
+      return await _firestore.runTransaction<bool>((tx) async {
+        final snapshot = await tx.get(productRef);
+        if (!snapshot.exists) {
+          print('likeProduct: product doc does not exist: $productId');
+          return false;
+        }
 
-      final data = productDoc.data() as Map<String, dynamic>;
-      final likedBy = List<String>.from(data['likedBy'] ?? []);
+        final data = snapshot.data() as Map<String, dynamic>;
+        final likedBy = List<String>.from(data['likedBy'] ?? []);
+        print('likeProduct: before snapshot data for $productId: $data');
 
-      if (likedBy.contains(userId)) {
-        return false; // Already liked
-      }
+        if (likedBy.contains(userId)) {
+          print('likeProduct: user $userId already in likedBy');
+          return false; // Already liked
+        }
 
-      likedBy.add(userId);
-      await productRef.update({
-        'likes': FieldValue.increment(1),
-        'likedBy': likedBy,
+        final updateMap = {
+          'likes': FieldValue.increment(1),
+          'likedBy': FieldValue.arrayUnion([userId]),
+        };
+
+        // Compute a concrete simulated final document (what request.resource would look like)
+        final int currentLikes = (data['likes'] is int) ? data['likes'] as int : 0;
+        final int likesFinal = currentLikes + 1;
+        final List<dynamic> currentLikedBy = List<dynamic>.from(data['likedBy'] ?? []);
+        final List<dynamic> likedByFinal = [...currentLikedBy, userId];
+
+        print('likeProduct: applying updateMap: $updateMap (userId: $userId)');
+        print('likeProduct: simulated request.resource (concrete) => likes: $likesFinal, likedBy: $likedByFinal');
+
+        // Perform the update
+        tx.update(productRef, updateMap);
+        return true;
       });
-
-      return true;
+    } on FirebaseException catch (fe) {
+      print('FirebaseException liking product: ${fe.code} ${fe.message}');
+      // Extra debug hint: print current user and rules context not available here, but we can at least advise
+      print('likeProduct: firebase exception while updating product $productId for user $userId');
+      if (fe.code == 'permission-denied') rethrow;
+      return false;
     } catch (e) {
-      print('Error liking product: $e');
+      print('Error liking product (transaction): $e');
       return false;
     }
   }

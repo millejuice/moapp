@@ -79,10 +79,8 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Image.asset('assets/diamond.png', height: 80),
-                const SizedBox(height: 40),
                 const Text(
-                  'SHRINE',
+                  '뫱',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,

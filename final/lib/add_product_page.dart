@@ -60,12 +60,21 @@ class _AddProductPageState extends State<AddProductPage> {
   Future<void> _saveProduct() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final user = FirebaseAuth.instance.currentUser;
+    var user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인이 필요합니다.')),
-      );
-      return;
+      // Sign in anonymously to allow uploads and to associate creatorUid
+      try {
+        final cred = await FirebaseAuth.instance.signInAnonymously();
+        user = cred.user;
+        if (user != null) {
+          await _firestoreService.createUserIfNotExists(user);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('로그인 오류: $e')),
+        );
+        return;
+      }
     }
 
     setState(() => _isLoading = true);
@@ -80,7 +89,7 @@ class _AddProductPageState extends State<AddProductPage> {
         price: int.parse(_priceController.text.trim()),
         description: _descriptionController.text.trim(),
         imageUrl: imageUrl, // Temporary, will update after upload
-        creatorUid: user.uid,
+        creatorUid: user!.uid,
       );
 
       // Add product to get document ID
@@ -97,15 +106,22 @@ class _AddProductPageState extends State<AddProductPage> {
         );
         if (uploadedUrl != null) {
           imageUrl = uploadedUrl;
-          // Update product with image URL
-          final updatedProduct = product.copyWith(imageUrl: imageUrl);
-          await _firestoreService.updateProduct(productId, updatedProduct);
         }
       } else {
-        // Use default image URL
-        final updatedProduct = product.copyWith(imageUrl: imageUrl);
-        await _firestoreService.updateProduct(productId, updatedProduct);
+        // No image selected -> ensure default image is uploaded to Storage
+        try {
+          final defaultStorageUrl = await _storageService.getDefaultImageUrl();
+          if (defaultStorageUrl != null) {
+            imageUrl = defaultStorageUrl;
+          }
+        } catch (e) {
+          // fall back to existing imageUrl (external) if upload fails
+        }
       }
+
+      // Update product with final imageUrl (either uploaded or default)
+      final updatedProduct = product.copyWith(imageUrl: imageUrl);
+      await _firestoreService.updateProduct(productId, updatedProduct);
 
       if (mounted) {
         Navigator.pop(context);
@@ -142,6 +158,7 @@ class _AddProductPageState extends State<AddProductPage> {
           icon: const Icon(Icons.cancel),
           onPressed: () => Navigator.pop(context),
         ),
+        backgroundColor: Colors.grey,
         title: const Text('Add'),
         actions: [
           TextButton(

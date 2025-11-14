@@ -59,8 +59,22 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   Future<void> _likeProduct() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    var user = FirebaseAuth.instance.currentUser;
+    // If no user is signed in, sign in anonymously so request.auth is present for rules
+    if (user == null) {
+      try {
+        final cred = await FirebaseAuth.instance.signInAnonymously();
+        user = cred.user;
+        if (user != null) {
+          await _firestoreService.createUserIfNotExists(user);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('로그인 오류: $e')),
+        );
+        return;
+      }
+    }
 
     if (_hasLiked) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,25 +84,51 @@ class _DetailPageState extends State<DetailPage> {
     }
 
     setState(() => _isLoading = true);
-    final success = await _firestoreService.likeProduct(
-      widget.productId,
-      user.uid,
-    );
+    try {
+        final uid = user?.uid;
+        if (uid == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('사용자 정보가 없습니다.')),
+          );
+          return;
+        }
 
-    if (success) {
-      setState(() {
-        _hasLiked = true;
-      });
-      _loadProduct(); // Reload to get updated like count
+        final success = await _firestoreService.likeProduct(
+          widget.productId,
+          uid,
+        );
+
+      if (success) {
+        setState(() {
+          _hasLiked = true;
+        });
+        _loadProduct(); // Reload to get updated like count
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('I LIKE IT!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You can only do it once !!')),
+        );
+      }
+    } on FirebaseException catch (fe) {
+      // Permission denied (likely because guest/anonymous users don't have write access)
+      if (fe.code == 'permission-denied') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('권한이 없습니다. 좋아요는 로그인한 사용자만 가능합니다.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('오류: ${fe.message}')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('I LIKE IT!')),
+        SnackBar(content: Text('오류: $e')),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You can only do it once !!')),
-      );
+    } finally {
+      setState(() => _isLoading = false);
     }
-    setState(() => _isLoading = false);
   }
 
   Future<void> _deleteProduct() async {
@@ -179,7 +219,7 @@ class _DetailPageState extends State<DetailPage> {
   Widget build(BuildContext context) {
     if (_product == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Detail')),
+        appBar: AppBar(title: const Text('Detail'), backgroundColor: Colors.grey,),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -213,6 +253,7 @@ class _DetailPageState extends State<DetailPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('Detail'),
+        backgroundColor: Colors.grey,
         actions: [
           // Edit icon always visible; enabled only for the author
           IconButton(
@@ -502,6 +543,7 @@ class _EditProductPageState extends State<EditProductPage> {
           icon: const Icon(Icons.cancel),
           onPressed: () => Navigator.pop(context),
         ),
+         backgroundColor: Colors.grey,
         title: const Text('Edit'),
         actions: [
           TextButton(
