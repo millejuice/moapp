@@ -217,55 +217,53 @@ class _TodoPageState extends State<TodoPage> {
                   );
                 } else if (snapshot.hasData) {
                   final todos = snapshot.data!;
-                  return Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF340B76),
-                      ),
-                      child: ListView.builder(
-                        itemCount: todos.length,
-                        itemBuilder: (context, index) {
-                          final todo = todos[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF340B76),
+                    ),
+                    child: ListView.builder(
+                      itemCount: todos.length,
+                      itemBuilder: (context, index) {
+                        final todo = todos[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(44),
                             ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(44),
-                              ),
-                              child: CheckboxListTile(
-                                title: Text(
-                                  todo.title,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                  ),
+                            child: CheckboxListTile(
+                              title: Text(
+                                todo.title,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
                                 ),
-                                subtitle: Text(
-                                  'Points: ${todo.points}',
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                shape: const CircleBorder(side: BorderSide()),
-                                activeColor: const Color(0xFFBE6B6B),
-                                checkColor: Colors.white,
-                                controlAffinity: ListTileControlAffinity.leading,
-                                value: isChecked != true,
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    isChecked = value! ? false : true;
-                                  });
-                                },
                               ),
+                              subtitle: Text(
+                                'Points: ${todo.points}',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              shape: const CircleBorder(side: BorderSide()),
+                              activeColor: const Color(0xFFBE6B6B),
+                              checkColor: Colors.white,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              value: isChecked != true,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked = value! ? false : true;
+                                });
+                              },
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   );
                 } else {

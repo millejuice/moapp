@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -50,20 +41,51 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD0-m9yfBEzhZadvRjWVB5EH7AiO0oY15g',
-    appId: '1:416733557792:android:8a2a4333dfc5382fcb7845',
-    messagingSenderId: '416733557792',
-    projectId: 'pixelnsemicolon',
-    storageBucket: 'pixelnsemicolon.appspot.com',
+    apiKey: 'AIzaSyDmxSvkDQxlf5e5-PtiO_Lq1uJG3o40UTI',
+    appId: '1:194927244974:android:1fde5fd014686074351f3f',
+    messagingSenderId: '194927244974',
+    projectId: 'moapp-teamp',
+    storageBucket: 'moapp-teamp.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCE5vvJ8EEMdxoJGbu07BqEW5z126W3t_Q',
-    appId: '1:416733557792:ios:6db5e63ba65d86a7cb7845',
-    messagingSenderId: '416733557792',
-    projectId: 'pixelnsemicolon',
-    storageBucket: 'pixelnsemicolon.appspot.com',
-    iosClientId: '416733557792-du88dfkct72lb6mk4q87nnd6pfq8gse3.apps.googleusercontent.com',
-    iosBundleId: 'com.example.pixelnsemicolon',
+    apiKey: 'AIzaSyBWSHUHwJ9CCuZoCyN9cLL94R_5SrrvP3U',
+    appId: '1:194927244974:ios:9bf1cffdf5d11866351f3f',
+    messagingSenderId: '194927244974',
+    projectId: 'moapp-teamp',
+    storageBucket: 'moapp-teamp.firebasestorage.app',
+    androidClientId: '194927244974-vk3r1uv594rai9a0pd8ojmlvflfg09l0.apps.googleusercontent.com',
+    iosClientId: '194927244974-at7k6p52fsqq313qvlqgvml3r5ihst0k.apps.googleusercontent.com',
+    iosBundleId: 'com.example.pixelNSemicolon',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAixpRzc3YydlvH0jpIY9hS88BTQFomduA',
+    appId: '1:194927244974:web:3b1ac893b68cc949351f3f',
+    messagingSenderId: '194927244974',
+    projectId: 'moapp-teamp',
+    authDomain: 'moapp-teamp.firebaseapp.com',
+    storageBucket: 'moapp-teamp.firebasestorage.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBWSHUHwJ9CCuZoCyN9cLL94R_5SrrvP3U',
+    appId: '1:194927244974:ios:9bf1cffdf5d11866351f3f',
+    messagingSenderId: '194927244974',
+    projectId: 'moapp-teamp',
+    storageBucket: 'moapp-teamp.firebasestorage.app',
+    androidClientId: '194927244974-vk3r1uv594rai9a0pd8ojmlvflfg09l0.apps.googleusercontent.com',
+    iosClientId: '194927244974-at7k6p52fsqq313qvlqgvml3r5ihst0k.apps.googleusercontent.com',
+    iosBundleId: 'com.example.pixelNSemicolon',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyAixpRzc3YydlvH0jpIY9hS88BTQFomduA',
+    appId: '1:194927244974:web:ea5f73653f202f6a351f3f',
+    messagingSenderId: '194927244974',
+    projectId: 'moapp-teamp',
+    authDomain: 'moapp-teamp.firebaseapp.com',
+    storageBucket: 'moapp-teamp.firebasestorage.app',
+  );
+
 }
