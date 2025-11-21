@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import 'model/todo.dart';
+import 'util/timer_widget.dart';
 
 class TodoPage extends StatefulWidget {
   const TodoPage({super.key});
@@ -17,9 +18,7 @@ class _TodoPageState extends State<TodoPage> {
   int _selectedIndex = 0;
   int percent = 80;
   int points = 2;
-  late Timer _timer;
-  late DateTime _midnight;
-  late Duration _timeRemaining;
+  late Future<List<Todo>> _todosFuture;
 
   bool isChecked = false;
 
@@ -36,43 +35,15 @@ class _TodoPageState extends State<TodoPage> {
   @override
   void initState() {
     super.initState();
-    _midnight = _calculateMidnight();
-    _timeRemaining = _calculateTimeRemaining();
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _timeRemaining = _calculateTimeRemaining();
-        if (_timeRemaining.inSeconds <= 0) {
-          _timer.cancel();
-        }
-      });
-    });
+    _todosFuture = _fetchTodosFromFirestore();
   }
 
   @override
   void dispose() {
-    _timer.cancel();
     super.dispose();
   }
 
-  DateTime _calculateMidnight() {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day + 1);
-    return midnight;
-  }
 
-  Duration _calculateTimeRemaining() {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day + 1);
-    return midnight.difference(now);
-  }
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours.toString().padLeft(2, '0');
-    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    return '$hours:$minutes:$seconds';
-  }
 
   Future<List<Todo>> _fetchTodosFromFirestore() async {
     final snapshot = await FirebaseFirestore.instance
@@ -92,7 +63,6 @@ class _TodoPageState extends State<TodoPage> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.sizeOf(context);
-    final formattedDuration = _formatDuration(_timeRemaining);
 
     return WillPopScope(
       onWillPop: null,
@@ -107,14 +77,7 @@ class _TodoPageState extends State<TodoPage> {
                 width: 20,
               ),
               Image.asset('assets/timer.png',width: 55,height: 55,),
-              Text(
-                formattedDuration,
-                style: const TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              const TimerWidget(),
               SizedBox(width: size.width * 0.1),
             ],
           ),
@@ -205,7 +168,7 @@ class _TodoPageState extends State<TodoPage> {
             ),
             Expanded(
                 child: FutureBuilder<List<Todo>>(
-              future: _fetchTodosFromFirestore(),
+              future: _todosFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
