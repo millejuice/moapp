@@ -42,6 +42,8 @@ class _RankingPageState extends State<RankingPage> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.sizeOf(context);
+    double widthScale = size.width / 390;
+    double heightScale = size.height / 844;
 
     return WillPopScope(
       onWillPop: null,
@@ -111,13 +113,17 @@ class _RankingPageState extends State<RankingPage> {
                       ),
                       child: Row(
                         children: [
-                          Image.asset('assets/rank1.png'),
+                          Image.asset(
+                            'assets/rank1.png',
+                            width: 76 * widthScale,
+                            height: 76 * widthScale,
+                          ),
                           const SizedBox(
                             width: 19,
                           ),
                           Container(
-                            width: 240,
-                            height: 95,
+                            width: 240 * widthScale,
+                            height: 95 * heightScale,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(41),
@@ -127,7 +133,11 @@ class _RankingPageState extends State<RankingPage> {
                                 const SizedBox(
                                   width: 15,
                                 ),
-                                Image.asset('assets/user1.png'),
+                                Image.asset(
+                                  'assets/user1.png',
+                                  width: 68 * widthScale,
+                                  height: 68 * widthScale,
+                                ),
                                 Padding(
                                   padding: const EdgeInsets.only(
                                     left: 9,
@@ -151,7 +161,11 @@ class _RankingPageState extends State<RankingPage> {
                                           const SizedBox(
                                             width: 4,
                                           ),
-                                          Image.asset('assets/me.png'),
+                                          Image.asset(
+                                            'assets/me.png',
+                                            width: 25 * widthScale,
+                                            height: 25 * widthScale,
+                                          ),
                                         ],
                                       ),
                                       const Row(
@@ -171,8 +185,8 @@ class _RankingPageState extends State<RankingPage> {
                                       const SizedBox(
                                         height: 6,
                                       ),
-                                      LinearPercentIndicator(
-                                        width: 140,
+                                        LinearPercentIndicator(
+                                          width: 140 * widthScale,
                                         animation: false,
                                         animationDuration: 1000,
                                         lineHeight: 14.0,
@@ -197,7 +211,11 @@ class _RankingPageState extends State<RankingPage> {
                       ),
                       child: Row(
                         children: [
-                          Image.asset('assets/rank2.png'),
+                          Image.asset(
+                            'assets/rank2.png',
+                            width: 76 * widthScale,
+                            height: 76 * widthScale,
+                          ),
                           const SizedBox(
                             width: 19,
                           ),
@@ -206,8 +224,8 @@ class _RankingPageState extends State<RankingPage> {
                               Navigator.pushNamed(context, '/lock');
                             },
                             child: Container(
-                              width: 240,
-                              height: 95,
+                              width: 240 * widthScale,
+                              height: 95 * heightScale,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(41),
@@ -217,7 +235,11 @@ class _RankingPageState extends State<RankingPage> {
                                   const SizedBox(
                                     width: 15,
                                   ),
-                                  Image.asset('assets/user2.png'),
+                                  Image.asset(
+                                    'assets/user2.png',
+                                    width: 68 * widthScale,
+                                    height: 68 * widthScale,
+                                  ),
                                   Padding(
                                     padding: const EdgeInsets.only(
                                       left: 9,
@@ -258,7 +280,7 @@ class _RankingPageState extends State<RankingPage> {
                                           height: 6,
                                         ),
                                         LinearPercentIndicator(
-                                          width: 140,
+                                          width: 140 * widthScale,
                                           animation: true,
                                           animationDuration: 1000,
                                           lineHeight: 14.0,
@@ -284,13 +306,17 @@ class _RankingPageState extends State<RankingPage> {
                       ),
                       child: Row(
                         children: [
-                          Image.asset('assets/rank3.png'),
+                          Image.asset(
+                            'assets/rank3.png',
+                            width: 76 * widthScale,
+                            height: 76 * widthScale,
+                          ),
                           const SizedBox(
                             width: 19,
                           ),
                           Container(
-                            width: 240,
-                            height: 95,
+                            width: 240 * widthScale,
+                            height: 95 * heightScale,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(41),
@@ -300,7 +326,11 @@ class _RankingPageState extends State<RankingPage> {
                                 const SizedBox(
                                   width: 15,
                                 ),
-                                Image.asset('assets/user3.png'),
+                                Image.asset(
+                                  'assets/user3.png',
+                                  width: 68 * widthScale,
+                                  height: 68 * widthScale,
+                                ),
                                 Padding(
                                   padding: const EdgeInsets.only(
                                     left: 9,
@@ -341,7 +371,7 @@ class _RankingPageState extends State<RankingPage> {
                                         height: 6,
                                       ),
                                       LinearPercentIndicator(
-                                        width: 140,
+                                        width: 140 * widthScale,
                                         animation: true,
                                         animationDuration: 1000,
                                         lineHeight: 14.0,
