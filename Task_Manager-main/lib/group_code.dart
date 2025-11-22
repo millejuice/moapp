@@ -1,56 +1,88 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GroupCodeScreen extends StatefulWidget {
-  const GroupCodeScreen({super.key});
+  final String groupToken;
+  final String groupName;
+
+  const GroupCodeScreen({
+    super.key,
+    required this.groupToken,
+    required this.groupName,
+  });
 
   @override
   State<GroupCodeScreen> createState() => _GroupCodeScreenState();
 }
 
 class _GroupCodeScreenState extends State<GroupCodeScreen> {
+  String userName = '사용자';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          userName = userDoc.data()?['nickname'] ?? user.displayName ?? '사용자';
+        });
+      }
+    }
+  }
+
+  Future<void> _copyToken() async {
+    await Clipboard.setData(ClipboardData(text: widget.groupToken));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('토큰이 복사되었습니다!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
         children: [
-          SizedBox(
-            height: 192,
-          ),
+          SizedBox(height: 192),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
+              SizedBox(
                 width: 85.12,
                 height: 85.12,
                 child: Image.asset('assets/group2.png'),
               ),
-              SizedBox(
-                width: 11.8,
-              ),
+              SizedBox(width: 11.8),
               Column(
                 children: [
                   Text(
                     '환영한다!',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 40, color: Colors.white),
                   ),
                   Text(
-                    '김깔깔!',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: Colors.white,
-                    ),
+                    '$userName!',
+                    style: TextStyle(fontSize: 40, color: Colors.white),
                   ),
                 ],
               ),
             ],
           ),
-          SizedBox(
-            height: 94,
-          ),
+          SizedBox(height: 94),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -58,29 +90,29 @@ class _GroupCodeScreenState extends State<GroupCodeScreen> {
               Text(
                 textAlign: TextAlign.right,
                 '그룹 토큰:',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white,
-                ),
+                style: TextStyle(fontSize: 10, color: Colors.white),
               ),
             ],
           ),
           Text(
-            'pixelNsemicolon',
+            widget.groupToken,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(
-            height: 30,
-          ),
+          SizedBox(height: 30),
           ElevatedButton(
             onPressed: () {
               //홈화면으로 이동!!!!
               Navigator.popUntil(context, (route) => false);
-              Navigator.pushNamed(context, '/todo');
+              Navigator.pushNamed(
+                context,
+                '/todo',
+                arguments: {'joinedGroupToken': widget.groupToken},
+              );
             },
             style: ElevatedButton.styleFrom(
               fixedSize: const Size(170, 40),
@@ -99,17 +131,9 @@ class _GroupCodeScreenState extends State<GroupCodeScreen> {
               ),
             ),
           ),
-          SizedBox(
-            height: 30,
-          ),
-          Container(
-            height: 21,
-            width: 1,
-            color: Colors.white,
-          ),
-          SizedBox(
-            height: 30,
-          ),
+          SizedBox(height: 30),
+          Container(height: 21, width: 1, color: Colors.white),
+          SizedBox(height: 30),
           Text(
             '공유해서 내 친구도 초대하기 ><',
             style: TextStyle(
@@ -118,11 +142,9 @@ class _GroupCodeScreenState extends State<GroupCodeScreen> {
               color: Colors.white,
             ),
           ),
-          SizedBox(
-            height: 9,
-          ),
+          SizedBox(height: 9),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: _copyToken,
             style: ElevatedButton.styleFrom(
               fixedSize: const Size(156, 35),
               backgroundColor: Color(0XFFFFFFFF),
@@ -139,9 +161,7 @@ class _GroupCodeScreenState extends State<GroupCodeScreen> {
               ),
             ),
           ),
-          SizedBox(
-            height: 13,
-          ),
+          SizedBox(height: 13),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
