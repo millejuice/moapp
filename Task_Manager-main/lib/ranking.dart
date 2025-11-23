@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'util/timer_widget.dart';
 import 'attack_overlay.dart';
+import 'todo.dart';
 
 class RankingPage extends StatefulWidget {
   const RankingPage({Key? key}) : super(key: key);
@@ -51,7 +52,22 @@ class _RankingPageState extends State<RankingPage> {
       },
     );
     if (index == 0) {
-      Navigator.pushNamed(context, '/todo');
+      // Replace current page with TodoPage with a slide-from-left animation
+      Navigator.of(context).pushReplacement(PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const TodoPage(),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final offsetAnimation = Tween<Offset>(
+            begin: const Offset(-1.0, 0.0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(animation);
+          final opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(animation);
+          return SlideTransition(
+            position: offsetAnimation,
+            child: FadeTransition(opacity: opacityAnimation, child: child),
+          );
+        },
+      ));
     }
   }
 
@@ -149,6 +165,7 @@ class _RankingPageState extends State<RankingPage> {
                         final groupName = groupData['groupName'] ?? '단짝친구 ><';
                         final pointsMap = Map<String, dynamic>.from(groupData['points'] ?? {});
                         final attackedUser = groupData['attackedUser'] as String?;
+                        final members = List<String>.from(groupData['members'] ?? []);
 
                         if (attackedUser == _currentUid) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -180,10 +197,21 @@ class _RankingPageState extends State<RankingPage> {
                                 decoration: const BoxDecoration(
                                   color: Color(0xFFFF316F),
                                 ),
-                                child: StreamBuilder<QuerySnapshot>(
+                                child: members.isEmpty
+                                    ? const Center(
+                                        child: Text(
+                                          "No members in this group",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      )
+                                    : StreamBuilder<QuerySnapshot>(
                                   stream: FirebaseFirestore.instance
                                       .collection('users')
-                                      .where('groupTokens', arrayContains: _groupToken)
+                                      .where(FieldPath.documentId, whereIn: members)
                                       .snapshots(),
                                   builder: (context, usersSnapshot) {
                                     if (!usersSnapshot.hasData) {
@@ -202,16 +230,14 @@ class _RankingPageState extends State<RankingPage> {
 
                                     users.sort((a, b) => (b['points'] as int).compareTo(a['points'] as int));
 
-                                    while (users.length < 3) {
-                                      users.add({'uid': '', 'nickname': '-', 'points': 0});
-                                    }
+                                    final firstPlaceUid = users.isNotEmpty ? users[0]['uid'] : '';
+                                    final isAmFirstPlace = firstPlaceUid == _currentUid;
 
-                                    return Column(
-                                      children: [
-                                        _buildRankItem(context, users[0], 1, widthScale, heightScale),
-                                        _buildRankItem(context, users[1], 2, widthScale, heightScale),
-                                        _buildRankItem(context, users[2], 3, widthScale, heightScale),
-                                      ],
+                                    return ListView.builder(
+                                      itemCount: users.length,
+                                      itemBuilder: (context, index) {
+                                        return _buildRankItem(context, users[index], index + 1, widthScale, heightScale, isAmFirstPlace);
+                                      },
                                     );
                                   },
                                 ),
@@ -262,9 +288,11 @@ class _RankingPageState extends State<RankingPage> {
     );
   }
 
-  Widget _buildRankItem(BuildContext context, Map<String, dynamic> user, int rank, double widthScale, double heightScale) {
+  Widget _buildRankItem(BuildContext context, Map<String, dynamic> user, int rank, double widthScale, double heightScale, bool isAmFirstPlace) {
     final isMe = user['uid'] == _currentUid;
-    final isRank2 = rank == 2;
+    // Allow attack if I am 1st place AND the target is NOT me.
+    // (Original request said "1st place can send 2,3 place to lock screen", so basically anyone else)
+    final canAttack = isAmFirstPlace && !isMe;
 
     return Padding(
       padding: const EdgeInsets.only(
@@ -282,7 +310,7 @@ class _RankingPageState extends State<RankingPage> {
             width: 19,
           ),
           GestureDetector(
-            onTap: isRank2
+            onTap: canAttack
                 ? () {
                     setState(() {
                       _targetUid = user['uid'];
@@ -331,10 +359,15 @@ class _RankingPageState extends State<RankingPage> {
                               const SizedBox(
                                 width: 4,
                               ),
-                              Image.asset(
-                                'assets/me.png',
-                                width: 25 * widthScale,
-                                height: 25 * widthScale,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushReplacementNamed(context, '/lock');
+                                },
+                                child: Image.asset(
+                                  'assets/me.png',
+                                  width: 25 * widthScale,
+                                  height: 25 * widthScale,
+                                ),
                               ),
                             ],
                           ],
