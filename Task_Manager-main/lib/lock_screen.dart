@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:timer_count_down/timer_controller.dart';
 import 'package:timer_count_down/timer_count_down.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'lib/hand_raise_detector.dart';
+import 'hand_raise_detector.dart';
 
 class LockPage extends StatefulWidget {
   const LockPage({super.key});
