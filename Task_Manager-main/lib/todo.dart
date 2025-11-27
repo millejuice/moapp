@@ -32,7 +32,11 @@ class _TodoPageState extends State<TodoPage> {
     });
 
     if (index == 1) {
-      await Navigator.pushNamed(context, '/ranking');
+      await Navigator.pushNamed(
+        context,
+        '/ranking',
+        arguments: {'currentGroupToken': currentGroupToken},
+      );
       // ranking에서 돌아왔을 때 데이터 새로고침 (현재 그룹 유지)
       setState(() {
         _selectedIndex = 0;

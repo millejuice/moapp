@@ -8,7 +8,7 @@ import 'attack_overlay.dart';
 import 'todo.dart';
 
 class RankingPage extends StatefulWidget {
-  const RankingPage({Key? key}) : super(key: key);
+  const RankingPage({super.key});
 
   @override
   State<RankingPage> createState() => _RankingPageState();
@@ -25,53 +25,57 @@ class _RankingPageState extends State<RankingPage> {
   String? _groupToken;
   String? _targetUid;
   final String _currentUid = FirebaseAuth.instance.currentUser!.uid;
+  bool _hasInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserGroupToken();
   }
 
-  Future<void> _fetchUserGroupToken() async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(_currentUid).get();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasInitialized) {
+      _hasInitialized = true;
+      // Navigator arguments에서 현재 그룹 토큰 받기
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final passedGroupToken = args?['currentGroupToken'] as String?;
+      _fetchUserGroupToken(specificGroupToken: passedGroupToken);
+    }
+  }
+
+  Future<void> _fetchUserGroupToken({String? specificGroupToken}) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUid)
+        .get();
     if (userDoc.exists && userDoc.data() != null) {
       final data = userDoc.data()!;
       final tokens = List<String>.from(data['groupTokens'] ?? []);
-      if (tokens.isNotEmpty) {
+      // 전달받은 그룹 토큰 우선, 없으면 첫 번째 그룹
+      final tokenToUse =
+          specificGroupToken ?? (tokens.isNotEmpty ? tokens[0] : null);
+      if (tokenToUse != null) {
         setState(() {
-          _groupToken = tokens[0];
+          _groupToken = tokenToUse;
         });
       }
     }
   }
 
   void _onItemTapped(int index) {
-    setState(
-      () {
-        _selectedIndex = index;
-      },
-    );
+    setState(() {
+      _selectedIndex = index;
+    });
     if (index == 0) {
       // Replace current page with TodoPage with a slide-from-left animation
-      Navigator.of(context).pushReplacement(PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const TodoPage(),
-        transitionDuration: const Duration(milliseconds: 300),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final offsetAnimation = Tween<Offset>(
-            begin: const Offset(-1.0, 0.0),
-            end: Offset.zero,
-          ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(animation);
-          final opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(animation);
-          return SlideTransition(
-            position: offsetAnimation,
-            child: FadeTransition(opacity: opacityAnimation, child: child),
-          );
-        },
-      ));
+      Navigator.of(context).pushReplacementNamed(
+        '/todo',
+        arguments: {'joinedGroupToken': _groupToken},
+      );
     }
   }
-
-
 
   @override
   void dispose() {
@@ -93,10 +97,8 @@ class _RankingPageState extends State<RankingPage> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(
-                width: 20,
-              ),
-              Image.asset('assets/timer.png',width: 55,height: 55,),
+              const SizedBox(width: 20),
+              Image.asset('assets/timer.png', width: 55, height: 55),
               const TimerWidget(),
               SizedBox(width: size.width * 0.1),
             ],
@@ -109,9 +111,7 @@ class _RankingPageState extends State<RankingPage> {
                 Container(
                   height: 120,
                   width: MediaQuery.of(context).size.width,
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                  ),
+                  decoration: const BoxDecoration(color: Colors.black),
                   child: const Center(
                     child: Text(
                       '랭킹',
@@ -127,9 +127,7 @@ class _RankingPageState extends State<RankingPage> {
                   Expanded(
                     child: Container(
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF316F),
-                      ),
+                      decoration: const BoxDecoration(color: Color(0xFFFF316F)),
                       child: const Center(
                         child: Text(
                           "그룹에 멤버가 없습니다:--)",
@@ -145,31 +143,48 @@ class _RankingPageState extends State<RankingPage> {
                 else
                   Expanded(
                     child: StreamBuilder<DocumentSnapshot>(
-                      stream: FirebaseFirestore.instance.collection('groups').doc(_groupToken).snapshots(),
+                      stream: FirebaseFirestore.instance
+                          .collection('groups')
+                          .doc(_groupToken)
+                          .snapshots(),
                       builder: (context, groupSnapshot) {
                         if (!groupSnapshot.hasData) {
                           return Container(
                             color: const Color(0xFFFF316F),
-                            child: const Center(child: CircularProgressIndicator()),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           );
                         }
 
-                        final groupData = groupSnapshot.data!.data() as Map<String, dynamic>?;
+                        final groupData =
+                            groupSnapshot.data!.data() as Map<String, dynamic>?;
                         if (groupData == null) {
                           return Container(
                             color: const Color(0xFFFF316F),
-                            child: const Center(child: Text("Group data not found")),
+                            child: const Center(
+                              child: Text("Group data not found"),
+                            ),
                           );
                         }
 
                         final groupName = groupData['groupName'] ?? '단짝친구 ><';
-                        final pointsMap = Map<String, dynamic>.from(groupData['points'] ?? {});
-                        final attackedUser = groupData['attackedUser'] as String?;
-                        final members = List<String>.from(groupData['members'] ?? []);
+                        final pointsMap = Map<String, dynamic>.from(
+                          groupData['points'] ?? {},
+                        );
+                        final attackedUser =
+                            groupData['attackedUser'] as String?;
+                        final members = List<String>.from(
+                          groupData['members'] ?? [],
+                        );
 
                         if (attackedUser == _currentUid) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            Navigator.pushReplacementNamed(context, '/lock');
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/lock',
+                              arguments: {'currentGroupToken': _groupToken},
+                            );
                           });
                         }
 
@@ -209,38 +224,63 @@ class _RankingPageState extends State<RankingPage> {
                                         ),
                                       )
                                     : StreamBuilder<QuerySnapshot>(
-                                  stream: FirebaseFirestore.instance
-                                      .collection('users')
-                                      .where(FieldPath.documentId, whereIn: members)
-                                      .snapshots(),
-                                  builder: (context, usersSnapshot) {
-                                    if (!usersSnapshot.hasData) {
-                                      return const Center(child: CircularProgressIndicator());
-                                    }
+                                        stream: FirebaseFirestore.instance
+                                            .collection('users')
+                                            .where(
+                                              FieldPath.documentId,
+                                              whereIn: members,
+                                            )
+                                            .snapshots(),
+                                        builder: (context, usersSnapshot) {
+                                          if (!usersSnapshot.hasData) {
+                                            return const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            );
+                                          }
 
-                                    final users = usersSnapshot.data!.docs.map((doc) {
-                                      final data = doc.data() as Map<String, dynamic>;
-                                      final uid = doc.id;
-                                      return {
-                                        'uid': uid,
-                                        'nickname': data['nickname'] ?? 'Unknown',
-                                        'points': pointsMap[uid] ?? 0,
-                                      };
-                                    }).toList();
+                                          final users = usersSnapshot.data!.docs
+                                              .map((doc) {
+                                                final data =
+                                                    doc.data()
+                                                        as Map<String, dynamic>;
+                                                final uid = doc.id;
+                                                return {
+                                                  'uid': uid,
+                                                  'nickname':
+                                                      data['nickname'] ??
+                                                      'Unknown',
+                                                  'points': pointsMap[uid] ?? 0,
+                                                };
+                                              })
+                                              .toList();
 
-                                    users.sort((a, b) => (b['points'] as int).compareTo(a['points'] as int));
+                                          users.sort(
+                                            (a, b) => (b['points'] as int)
+                                                .compareTo(a['points'] as int),
+                                          );
 
-                                    final firstPlaceUid = users.isNotEmpty ? users[0]['uid'] : '';
-                                    final isAmFirstPlace = firstPlaceUid == _currentUid;
+                                          final firstPlaceUid = users.isNotEmpty
+                                              ? users[0]['uid']
+                                              : '';
+                                          final isAmFirstPlace =
+                                              firstPlaceUid == _currentUid;
 
-                                    return ListView.builder(
-                                      itemCount: users.length,
-                                      itemBuilder: (context, index) {
-                                        return _buildRankItem(context, users[index], index + 1, widthScale, heightScale, isAmFirstPlace);
-                                      },
-                                    );
-                                  },
-                                ),
+                                          return ListView.builder(
+                                            itemCount: users.length,
+                                            itemBuilder: (context, index) {
+                                              return _buildRankItem(
+                                                context,
+                                                users[index],
+                                                index + 1,
+                                                widthScale,
+                                                heightScale,
+                                                isAmFirstPlace,
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
                               ),
                             ),
                             SizedBox(
@@ -288,17 +328,20 @@ class _RankingPageState extends State<RankingPage> {
     );
   }
 
-  Widget _buildRankItem(BuildContext context, Map<String, dynamic> user, int rank, double widthScale, double heightScale, bool isAmFirstPlace) {
+  Widget _buildRankItem(
+    BuildContext context,
+    Map<String, dynamic> user,
+    int rank,
+    double widthScale,
+    double heightScale,
+    bool isAmFirstPlace,
+  ) {
     final isMe = user['uid'] == _currentUid;
-    // Allow attack if I am 1st place AND the target is NOT me.
-    // (Original request said "1st place can send 2,3 place to lock screen", so basically anyone else)
+    // 1등이어야 다른 사람을 공격할 수 있음 (본인 제외)
     final canAttack = isAmFirstPlace && !isMe;
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 21,
-        left: 15,
-      ),
+      padding: const EdgeInsets.only(top: 21, left: 15),
       child: Row(
         children: [
           Image.asset(
@@ -306,9 +349,7 @@ class _RankingPageState extends State<RankingPage> {
             width: 76 * widthScale,
             height: 76 * widthScale,
           ),
-          const SizedBox(
-            width: 19,
-          ),
+          const SizedBox(width: 19),
           GestureDetector(
             onTap: canAttack
                 ? () {
@@ -327,27 +368,20 @@ class _RankingPageState extends State<RankingPage> {
               ),
               child: Row(
                 children: [
-                  const SizedBox(
-                    width: 15,
-                  ),
+                  const SizedBox(width: 15),
                   Image.asset(
-                    'assets/user$rank.png', 
+                    'assets/user$rank.png',
                     width: 68 * widthScale,
                     height: 68 * widthScale,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 9,
-                      top: 12,
-                    ),
+                    padding: const EdgeInsets.only(left: 9, top: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             Text(
                               user['nickname'],
                               style: const TextStyle(
@@ -356,12 +390,16 @@ class _RankingPageState extends State<RankingPage> {
                               ),
                             ),
                             if (isMe) ...[
-                              const SizedBox(
-                                width: 4,
-                              ),
+                              const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushReplacementNamed(context, '/lock');
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/lock',
+                                    arguments: {
+                                      'currentGroupToken': _groupToken,
+                                    },
+                                  );
                                 },
                                 child: Image.asset(
                                   'assets/me.png',
@@ -374,9 +412,7 @@ class _RankingPageState extends State<RankingPage> {
                         ),
                         Row(
                           children: [
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             Text(
                               '${user['points']}point',
                               style: const TextStyle(
@@ -386,17 +422,21 @@ class _RankingPageState extends State<RankingPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 6,
-                        ),
+                        const SizedBox(height: 6),
                         LinearPercentIndicator(
                           width: 140 * widthScale,
                           animation: true,
                           animationDuration: 1000,
                           lineHeight: 14.0,
-                          percent: (user['points'] as int) / 100.0 > 1.0 ? 1.0 : (user['points'] as int) / 100.0,
+                          percent: (user['points'] as int) / 100.0 > 1.0
+                              ? 1.0
+                              : (user['points'] as int) / 100.0,
                           barRadius: const Radius.circular(19),
-                          progressColor: rank == 1 ? const Color(0xFFFF7272) : (rank == 2 ? const Color(0xFFFFCF72) : const Color(0xFF72FFBB)),
+                          progressColor: rank == 1
+                              ? const Color(0xFFFF7272)
+                              : (rank == 2
+                                    ? const Color(0xFFFFCF72)
+                                    : const Color(0xFF72FFBB)),
                           backgroundColor: Colors.grey[300],
                         ),
                       ],
@@ -411,4 +451,3 @@ class _RankingPageState extends State<RankingPage> {
     );
   }
 }
-
