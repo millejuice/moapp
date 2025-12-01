@@ -21,9 +21,10 @@ class AttackOverlay extends StatefulWidget {
 }
 
 class _AttackOverlayState extends State<AttackOverlay> {
-  int _step = 0; // 0: Intro, 1: Selection, 2: Result, 3: Final
+  int _step = 0; // 0: Intro, 1: User Selection, 2: Penalty Selection, 3: Result, 4: Final
   String _resultMessage = "";
   Map<String, dynamic>? _selectedUser;
+  String? _selectedPenaltyType; // 'tap' or 'handRaise'
   late Future<List<Map<String, dynamic>>> _membersFuture;
 
   @override
@@ -62,28 +63,38 @@ class _AttackOverlayState extends State<AttackOverlay> {
     }).toList();
   }
 
-  void _handleSelection(Map<String, dynamic> user) {
+  void _handleUserSelection(Map<String, dynamic> user) {
     setState(() {
       _selectedUser = user;
+      _step = 2; // 벌칙 타입 선택 단계로 이동
+    });
+  }
+
+  void _handlePenaltySelection(String penaltyType) {
+    if (_selectedUser == null) return;
+
+    setState(() {
+      _selectedPenaltyType = penaltyType;
       _resultMessage = "사랑해 친구야~"; // Default message, can be randomized or based on logic
-      _step = 2;
+      _step = 3; // Result 단계로 이동
     });
 
     // Update Firestore to trigger lock screen for the target user
     FirebaseFirestore.instance.collection('groups').doc(widget.groupToken).update({
-      'attackedUser': user['uid'],
+      'attackedUser': _selectedUser!['uid'],
       'attackerUid': FirebaseAuth.instance.currentUser!.uid, // Save who attacked
+      'penaltyType': penaltyType, // 벌칙 타입 저장 ('tap' or 'handRaise')
       'attackTimestamp': FieldValue.serverTimestamp(), // Optional: for tracking or timeout
     }).catchError((error) {
       debugPrint("Failed to attack: $error");
       // Handle error if needed
     });
 
-    // Step 2: Result -> Step 3: Final (after 2s)
+    // Step 3: Result -> Step 4: Final (after 2s)
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
-          _step = 3;
+          _step = 4;
         });
         
         // Close after showing final effect for a bit (e.g., 2s)
@@ -169,7 +180,7 @@ class _AttackOverlayState extends State<AttackOverlay> {
                       imageAsset: assetName,
                       nickname: member['nickname'],
                       color: color,
-                      onTap: () => _handleSelection(member),
+                      onTap: () => _handleUserSelection(member),
                     );
                   }).toList(),
                 ),
@@ -177,7 +188,89 @@ class _AttackOverlayState extends State<AttackOverlay> {
             );
           }
         );
-      case 2:
+      case 2: // 벌칙 타입 선택
+        if (_selectedUser == null) return const SizedBox.shrink();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "${_selectedUser!['nickname']}에게\n어떤 벌칙을 줄까?",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 40),
+            // 휴대폰 잠금 옵션
+            InkWell(
+              onTap: () => _handlePenaltySelection('tap'),
+              child: Container(
+                width: 280,
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF7B31),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.lock, size: 80, color: Colors.white),
+                    const SizedBox(height: 15),
+                    const Text(
+                      '휴대폰 잠금',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      '10번 탭해서 해제',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 모션 인식 옵션
+            InkWell(
+              onTap: () => _handlePenaltySelection('handRaise'),
+              child: Container(
+                width: 280,
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A2B7C),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.pan_tool, size: 80, color: Colors.white),
+                    const SizedBox(height: 15),
+                    const Text(
+                      '모션 인식',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      '양손을 들어서 해제',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      case 3: // Result
         if (_selectedUser == null) return const SizedBox.shrink();
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -229,7 +322,7 @@ class _AttackOverlayState extends State<AttackOverlay> {
              )
           ],
         );
-      case 3:
+      case 4: // Final
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
