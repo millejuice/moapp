@@ -77,15 +77,16 @@ class _LockPageState extends State<LockPage> {
           .get();
       final attackerUid = groupDoc.data()?['attackerUid'] as String?;
       final attackedUser = groupDoc.data()?['attackedUser'] as String?;
+      final penaltyType = groupDoc.data()?['penaltyType'] as String?; // 1등이 선택한 벌칙 타입
       final currentUid = user.uid;
 
       // 현재 사용자가 공격을 받은 사람인지 확인
       debugPrint(
-        '🔍 Lock Screen - attackedUser: $attackedUser, currentUid: $currentUid, attackerUid: $attackerUid',
+        '🔍 Lock Screen - attackedUser: $attackedUser, currentUid: $currentUid, attackerUid: $attackerUid, penaltyType: $penaltyType',
       );
 
       if (attackedUser == currentUid && attackerUid != null) {
-        debugPrint('✅ 공격을 받은 사용자입니다. 벌칙 선택 화면으로 이동합니다.');
+        debugPrint('✅ 공격을 받은 사용자입니다. 벌칙을 자동으로 실행합니다.');
         // 3. Get attacker's nickname
         final attackerDoc = await FirebaseFirestore.instance
             .collection('users')
@@ -95,6 +96,7 @@ class _LockPageState extends State<LockPage> {
         setState(() {
           _attackerNickname = attackerDoc.data()?['nickname'] ?? "Unknown";
           _victimNickname = userDoc.data()?['nickname'] ?? "Friend";
+          _penaltyMode = penaltyType; // 1등이 선택한 벌칙 타입 저장
           _isLoading = false;
         });
 
@@ -105,11 +107,21 @@ class _LockPageState extends State<LockPage> {
             setState(() => _lockState = 1);
           }
 
-          // Auto-advance from Intro to Action (벌칙 선택) after 2 seconds
+          // Auto-advance from Intro to Penalty Execution after 2 seconds
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
-              debugPrint('🎯 벌칙 선택 화면으로 이동 (탭하기/손들기 옵션)');
-              setState(() => _lockState = 2); // 벌칙 선택 화면
+              // 1등이 선택한 벌칙 타입에 따라 자동으로 실행
+              if (penaltyType == 'tap') {
+                debugPrint('🎯 탭하기 벌칙 자동 실행');
+                setState(() => _lockState = 3); // 탭 모드로 바로 이동
+              } else if (penaltyType == 'handRaise') {
+                debugPrint('🎯 손들기 벌칙 자동 실행');
+                setState(() => _lockState = 4); // 손들기 모드로 바로 이동
+              } else {
+                // penaltyType이 없는 경우 (fallback) 벌칙 선택 화면으로 이동
+                debugPrint('⚠️ penaltyType이 없어서 벌칙 선택 화면으로 이동');
+                setState(() => _lockState = 2); // 벌칙 선택 화면
+              }
             }
           });
         });
